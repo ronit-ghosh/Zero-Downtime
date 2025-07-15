@@ -1,5 +1,5 @@
 {
-  "name": "db",
+  "name": "@zero-downtime/db",
   "module": "index.ts",
   "type": "module",
   "private": true,
