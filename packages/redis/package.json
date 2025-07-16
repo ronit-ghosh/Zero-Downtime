@@ -1,0 +1,16 @@
+{
+  "name": "@zero-downtime/redis",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./client": "./index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "redis": "^5.6.0"
+  }
+}
