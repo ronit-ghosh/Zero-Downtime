@@ -19,8 +19,8 @@ async function xAdd(payload: WebsiteDetails): Promise<string | Error> {
     });
     return respone;
   } catch (error) {
-    console.error(error)
-    return error as Error
+    console.error(error);
+    return error as Error;
   }
 }
 
@@ -30,7 +30,7 @@ export async function xAddBulk(payloads: WebsiteDetails[]): Promise<{
 }> {
   const results: string[] = [];
   const errors: Error[] = [];
-  
+
   for (const payload of payloads) {
     try {
       const response = await xAdd({ id: payload.id, url: payload.url });
@@ -43,7 +43,7 @@ export async function xAddBulk(payloads: WebsiteDetails[]): Promise<{
       errors.push(error as Error);
     }
   }
-  
+
   return { results, errors };
 }
 
@@ -51,7 +51,7 @@ export async function xReadGroup(
   consumerGroup: string,
   workerId: string,
   count: number = 5
-) {
+): Promise<Array<[string, string[]]> | Error> {
   try {
     const response = await client.xReadGroup(
       consumerGroup, // india / usa
@@ -59,14 +59,17 @@ export async function xReadGroup(
       { key: STREAM_NAME, id: ">" },
       { COUNT: count }
     );
-    return response;
+    return response as Array<[string, string[]]>;
   } catch (error) {
     console.error(error);
-    return error;
+    return error as Error;
   }
 }
 
-export async function xAck(consumerGroup: string, streamId: string): Promise<number | Error> {
+export async function xAck(
+  consumerGroup: string,
+  streamId: string
+): Promise<number | Error> {
   try {
     const response = await client.xAck(STREAM_NAME, consumerGroup, streamId);
     return response;
@@ -78,11 +81,9 @@ export async function xAck(consumerGroup: string, streamId: string): Promise<num
 
 export async function xAckBulk(consumerGroup: string, streamIds: string[]) {
   try {
-    const promises = streamIds.map(id => xAck(consumerGroup, id));
+    const promises = streamIds.map((id) => xAck(consumerGroup, id));
     return await Promise.all(promises);
   } catch (error) {
     console.error(error);
   }
 }
-
-
