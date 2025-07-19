@@ -3,6 +3,10 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "start": "bun index.ts",
+    "dev": "bun index.ts"
+  },
   "dependencies": {
     "@zero-downtime/db": "*",
     "@zero-downtime/redis": "*"

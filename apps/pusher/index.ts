@@ -24,7 +24,7 @@ async function pushWebsitesInStream() {
     throw error;
   }
 }
-
+pushWebsitesInStream();
 setInterval(() => {
   pushWebsitesInStream();
-}, 3 * 100);
+}, 3 * 10000);
