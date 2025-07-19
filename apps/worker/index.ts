@@ -1,5 +1,5 @@
-import { xReadGroup } from "@zero-downtime/redis/client";
-import axios, { AxiosError } from "axios";
+import { xAck, xReadGroup } from "@zero-downtime/redis/client";
+import axios from "axios";
 import { config } from "dotenv";
 
 config({ path: "../../.env", quiet: true });
@@ -22,8 +22,11 @@ async function HitWebsiteUrl(
   website: Website
 ): Promise<{ statusCode: number; responseMs?: number } | undefined> {
   try {
+    const url = website.url.startsWith("https://")
+      ? website.url
+      : `https://${website.url}`;
     const startTime = Date.now();
-    const response = await axios.get(website.url);
+    const response = await axios.get(url);
     const endTime = Date.now();
     const responseMs = endTime - startTime;
     return {
@@ -31,12 +34,19 @@ async function HitWebsiteUrl(
       responseMs,
     };
   } catch (error) {
-    if (error instanceof AxiosError) {
-      console.log(`${website.url} returned `, error.code, error.status);
-      if (error.status)
+    if (axios.isAxiosError(error)) {
+      console.log(
+        `${website.url} returned `,
+        error.code,
+        error.response?.status
+      );
+      if (error.response?.status)
         return {
-          statusCode: error.status,
+          statusCode: error.response.status,
         };
+      return undefined;
+    } else {
+      console.error("Non-Axios error:", error);
       return undefined;
     }
   }
@@ -53,31 +63,41 @@ async function main() {
     if (!REGION_ID || !WORKER_ID) {
       throw new Error("`REGION_ID` `WORKER_ID` is not present in .env");
     }
-    while (1) {
       const response = await xReadGroup(REGION_ID, WORKER_ID);
+      if (!response) {
+        console.error("Stream is empty!");
+        return;
+      }
       // @ts-ignore TODO: find how to infer proper types
-      const result = response[0].messages.forEach(async (res) => {
+      for (const res of response[0].messages) {
         const response = await HitWebsiteUrl({
-          id: res.messages.id,
-          url: res.messages.url,
+          id: res.message.id,
+          url: res.message.url,
         });
 
+        if (!response) {
+          console.error("[worker]: Not hitting the url", res.message.url);
+          continue;
+        }
+
         const data = {
-          id: res.messages.id,
-          url: res.messages.url,
-          responseMs: response?.responseMs || 0,
-          statusCode: response?.statusCode,
+          id: res.message.id,
+          url: res.message.url,
+          responseMs: response.responseMs || 0,
+          statusCode: response.statusCode,
         };
 
-        if (response?.statusCode !== 200) {
+        if (response.statusCode !== 200) {
           notifyUser(data);
         }
 
         await addToDbPusher(data);
-      });
-
-      await Promise.all(result);
-    }
+      }
+      // @ts-ignore
+      for (const res of response[0].messages) {
+        const result = await xAck(REGION_ID, res.id);
+        console.log(result, "acknowledged!");
+      }
   } catch (error) {
     console.error(error);
     throw error;
@@ -85,3 +105,6 @@ async function main() {
 }
 
 main();
+setInterval(() => {
+  main();
+}, 10000);
