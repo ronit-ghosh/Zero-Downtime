@@ -1,0 +1,19 @@
+{
+  "name": "@zero-downtime/worker",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun index.ts",
+    "dev": "bun index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "@zero-downtime/redis": "*",
+    "axios": "^1.10.0",
+    "dotenv": "^17.2.0"
+  }
+}
