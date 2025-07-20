@@ -1,4 +1,5 @@
 import { xAck, xReadGroup } from "@zero-downtime/redis/client";
+import { xAddDb } from "@zero-downtime/redis/db-pusher";
 import axios from "axios";
 import { config } from "dotenv";
 
@@ -53,9 +54,18 @@ async function HitWebsiteUrl(
 }
 
 async function addToDbPusher(website: Website) {
-  console.log(
-    `pushed ${website.url} to db queue, response time is ${website.responseMs}, status code returned ${website.statusCode}`
-  );
+  const response = await xAddDb({
+    responseTimeMs: website.responseMs || 0,
+    status: website.statusCode
+      ? website.statusCode === 200
+        ? "UP"
+        : "DOWN"
+      : "UNKNOWN",
+    statusCode: website.statusCode || 500,
+    websiteId: website.id,
+  });
+
+  console.log("added to the stream: " + response + "\n");
 }
 
 async function main() {
@@ -63,41 +73,39 @@ async function main() {
     if (!REGION_ID || !WORKER_ID) {
       throw new Error("`REGION_ID` `WORKER_ID` is not present in .env");
     }
-      const response = await xReadGroup(REGION_ID, WORKER_ID);
+    const response = await xReadGroup(REGION_ID, WORKER_ID);
+    if (!response) {
+      console.error("Stream is empty!");
+      return;
+    }
+    // @ts-ignore TODO: find how to infer proper types
+    for (const res of response[0].messages) {
+      const response = await HitWebsiteUrl({
+        id: res.message.id,
+        url: res.message.url,
+      });
+
       if (!response) {
-        console.error("Stream is empty!");
-        return;
+        console.error("[worker]: Not hitting the url", res.message.url);
+        continue;
       }
-      // @ts-ignore TODO: find how to infer proper types
-      for (const res of response[0].messages) {
-        const response = await HitWebsiteUrl({
-          id: res.message.id,
-          url: res.message.url,
-        });
 
-        if (!response) {
-          console.error("[worker]: Not hitting the url", res.message.url);
-          continue;
-        }
+      const data = {
+        id: res.message.id,
+        url: res.message.url,
+        responseMs: response.responseMs || 0,
+        statusCode: response.statusCode,
+      };
 
-        const data = {
-          id: res.message.id,
-          url: res.message.url,
-          responseMs: response.responseMs || 0,
-          statusCode: response.statusCode,
-        };
-
-        if (response.statusCode !== 200) {
-          notifyUser(data);
-        }
-
-        await addToDbPusher(data);
+      if (response.statusCode !== 200) {
+        notifyUser(data);
       }
-      // @ts-ignore
-      for (const res of response[0].messages) {
-        const result = await xAck(REGION_ID, res.id);
-        console.log(result, "acknowledged!");
-      }
+
+      await addToDbPusher(data);
+     
+      const ackResult = await xAck(REGION_ID, res.id);
+      console.log(ackResult, "acknowledged!");
+    }
   } catch (error) {
     console.error(error);
     throw error;

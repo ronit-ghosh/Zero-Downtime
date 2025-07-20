@@ -79,31 +79,19 @@ model Website {
   updatedAt    DateTime      @updatedAt
 }
 
-model Region {
-  id   String @id @default(uuid())
-  name String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  websiteTicks WebsiteTick[]
-}
-
 model WebsiteTick {
   id             String        @id @default(uuid())
   responseTimeMs Int
   status         WebsiteStatus
+  statusCode     Int
   Website        Website?      @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   websiteId      String?
-  Region         Region?       @relation(fields: [regionId], references: [id], onDelete: Cascade)
-  regionId       String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 enum WebsiteStatus {
   UP
-  DOWN
+  DOWN 
   UNKNOWN
 }
