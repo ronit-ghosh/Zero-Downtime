@@ -73,6 +73,7 @@ model Website {
   id           String        @id @default(uuid())
   name         String
   url          String
+  isTracking   Boolean       @default(true)
   userId       String
   user         User          @relation(references: [id], fields: [userId])
   websiteTicks WebsiteTick[]
