@@ -99,6 +99,7 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
   },
   {
     accessorKey: "responseMs",
+    header: "Response (ms)",
     cell: ({ row }) => (
       <div className="text-center text-[#eee] lowercase">
         {row.getValue("responseMs")} ms
@@ -107,6 +108,7 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
   },
   {
     accessorKey: "statusCode",
+    header: "Status Code",
     cell: ({ row }) => {
       const value = row.getValue("statusCode") as number;
       return (
@@ -125,6 +127,7 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
   },
   {
     accessorKey: "errorCode",
+    header: "Error Code",
     cell: ({ row }) => {
       return (
         <div className="text-center font-medium text-[#eee]">
