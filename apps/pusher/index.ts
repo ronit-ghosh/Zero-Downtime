@@ -4,6 +4,9 @@ import { xAddBulk } from "@zero-downtime/redis/client";
 async function pushWebsitesInStream() {
   try {
     const websites = await prisma.website.findMany({
+      where: {
+        isTracking: true,
+      },
       select: {
         id: true,
         url: true,
