@@ -118,4 +118,29 @@
   body {
     @apply bg-background text-foreground;
   }
+  .font-outline-1 {
+    -webkit-text-stroke: 1px white;
+  }
+  .font-outline-2 {
+    -webkit-text-stroke: 2px white;
+  }
+  .font-outline-4 {
+    -webkit-text-stroke: 4px white;
+  }
+}
+
+body {
+  font-family: var(--font-poppins);
+}
+
+::selection {
+  background: #917fd3;
+  color: black;
+  text-shadow: none;
+}
+
+::-moz-selection {
+  background: #917fd3;
+  color: black;
+  text-shadow: none;
 }

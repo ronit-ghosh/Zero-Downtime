@@ -9,6 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        custom:
+          "bg-gradient-to-t from-[#11112E] to-[#040116] border border-[#2B2B61] rounded-2xl text-[#eee] font-semibold cursor-pointer",
         default:
           "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         destructive:

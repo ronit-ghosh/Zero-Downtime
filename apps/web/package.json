@@ -10,19 +10,22 @@
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",
+    "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
+    "@tabler/icons-react": "^3.34.1",
+    "@zero-downtime/db": "*",
     "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.525.0",
+    "motion": "^12.23.6",
     "next": "15.3.5",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.3.1",
-    "zod": "^4.0.5",
-    "@zero-downtime/db": "*"
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
