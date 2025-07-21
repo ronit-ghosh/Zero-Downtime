@@ -8,6 +8,7 @@ interface WebsiteDetails {
   responseTimeMs: number;
   status: "UP" | "DOWN" | "UNKNOWN";
   statusCode: number;
+  errorCode?: string;
   websiteId: string;
 }
 

@@ -84,14 +84,15 @@ model WebsiteTick {
   responseTimeMs Int
   status         WebsiteStatus
   statusCode     Int
+  errorCode      String?
   Website        Website?      @relation(fields: [websiteId], references: [id], onDelete: Cascade)
   websiteId      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 enum WebsiteStatus {
   UP
-  DOWN 
+  DOWN
   UNKNOWN
 }

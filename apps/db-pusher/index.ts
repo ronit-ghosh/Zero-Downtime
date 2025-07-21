@@ -25,6 +25,7 @@ async function main() {
           responseTimeMs: Number(res.message.responseTimeMs),
           status: res.message.status,
           statusCode: Number(res.message.statusCode),
+          errorCode: res.message.errorCode,
           Website: {
             connect: {
               id: res.message.websiteId,

@@ -16,6 +16,7 @@ interface Website {
   id: string;
   url: string;
   statusCode?: number;
+  errorCode?: string;
   responseMs?: number;
 }
 
@@ -33,7 +34,7 @@ async function notifyUser(website: Website) {
         user: {
           select: {
             email: true,
-            name: true
+            name: true,
           },
         },
       },
@@ -42,6 +43,9 @@ async function notifyUser(website: Website) {
       console.error("Website not found", website.id, website.url);
       return;
     }
+    const currentTime = new Date().toLocaleTimeString("en-IN", {
+      hour12: false,
+    });
     const { data, error } = await resend.emails.send({
       from: RESEND_EMAIL,
       to: websiteDetails.user.email,
@@ -53,9 +57,9 @@ async function notifyUser(website: Website) {
     <p>We noticed your website <a href="${website.url}">${website.url}</a> is currently <strong>down</strong>.</p>
 
     <ul>
-      <li><strong>Status Code:</strong> ${website.statusCode}</li>
+      <li><strong>Error Code:</strong> ${website.errorCode}</li>
       <li><strong>Response Time:</strong> ${website.responseMs} ms</li>
-      <li><strong>Last Checked:</strong>${Date.now().toLocaleString()}</li>
+      <li><strong>Last Checked:</strong>${currentTime}</li>
     </ul>
 
     <p>Please check your website or contact your hosting provider.</p>
@@ -67,7 +71,7 @@ async function notifyUser(website: Website) {
     if (error) {
       console.error(error);
       return error;
-    }    
+    }
     console.log("[worker]: resend response: ", data);
     return data;
   } catch (error) {
@@ -78,12 +82,14 @@ async function notifyUser(website: Website) {
 
 async function HitWebsiteUrl(
   website: Website
-): Promise<{ statusCode: number; responseMs?: number } | undefined> {
+): Promise<
+  { statusCode: number; responseMs: number; errorCode?: string } | undefined
+> {
+  const startTime = Date.now();
   try {
     const url = website.url.startsWith("https://")
       ? website.url
       : `https://${website.url}`;
-    const startTime = Date.now();
     const response = await axios.get(url);
     const endTime = Date.now();
     const responseMs = endTime - startTime;
@@ -92,6 +98,8 @@ async function HitWebsiteUrl(
       responseMs,
     };
   } catch (error) {
+    const endTime = Date.now();
+    const responseMs = endTime - startTime;
     if (axios.isAxiosError(error)) {
       console.error(
         `${website.url} returned `,
@@ -101,14 +109,18 @@ async function HitWebsiteUrl(
       if (error.response?.status)
         return {
           statusCode: error.response.status,
+          responseMs,
         };
       return {
-        statusCode: 0
+        statusCode: 0,
+        responseMs,
+        errorCode: error.code,
       };
     } else {
       console.error("Non-Axios error:", error);
       return {
-        statusCode: 0
+        statusCode: 0,
+        responseMs,
       };
     }
   }
@@ -124,6 +136,7 @@ async function addToDbPusher(website: Website) {
       : "UNKNOWN",
     statusCode: website.statusCode || 500,
     websiteId: website.id,
+    errorCode: website.errorCode,
   });
 
   console.log("added to the stream: " + response + "\n");
@@ -156,6 +169,7 @@ async function main() {
         url: res.message.url,
         responseMs: response.responseMs || 0,
         statusCode: response.statusCode,
+        errorCode: response.errorCode,
       };
 
       if (response.statusCode !== 200) {
