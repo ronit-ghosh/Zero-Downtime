@@ -1,17 +1,12 @@
 import { auth } from "@/lib/auth";
+import { deleteWebsiteValidation } from "@/types/validation/website";
 import prisma from "@zero-downtime/db/client";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse as res } from "next/server";
+import { prettifyError } from "zod";
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const websiteId = searchParams.get("id");
-
-    if (!websiteId) {
-      return res.json({ err: "Param `id` is not present!" }, { status: 400 });
-    }
-
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -19,6 +14,15 @@ export async function GET(req: NextRequest) {
     if (!session) {
       return res.json({ err: "Login first!" }, { status: 401 });
     }
+
+    const body = await req.json();
+    const parsedValues = deleteWebsiteValidation.safeParse(body);
+    if (!parsedValues.success) {
+      const err = prettifyError(parsedValues.error);
+      return res.json({ err }, { status: 400 });
+    }
+
+    const { websiteId } = parsedValues.data;
 
     const response = await prisma.website.delete({
       where: { id: websiteId },

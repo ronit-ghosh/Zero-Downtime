@@ -6,8 +6,9 @@ import { Button } from "../ui/button";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { IconArrowRight, IconMenu } from "@tabler/icons-react";
+import { IconMenu } from "@tabler/icons-react";
 import { Sheet, SheetTrigger, SheetContent, SheetTitle } from "../ui/sheet";
+import Auth from "./auth";
 
 const NAV_LINKS = [
   {
@@ -91,12 +92,7 @@ export default function Navbar() {
         </ul>
       </nav>
       {/* Desktop Dashboard Button */}
-      <Link href="/dashboard" className="hidden md:block">
-        <Button variant="custom">
-          Dashboard
-          <IconArrowRight />
-        </Button>
-      </Link>
+      <Auth />
       {/* Mobile Hamburger + Sheet */}
       <div className="md:hidden">
         <Sheet>
@@ -105,23 +101,22 @@ export default function Navbar() {
               <IconMenu />
             </Button>
           </SheetTrigger>
-          <SheetContent className="bg-gradient-to-tl from-[#040114] to-[#080421]" side="right">
+          <SheetContent
+            className="bg-gradient-to-tl from-[#040114] to-[#080421]"
+            side="right"
+          >
             <SheetTitle />
             <nav className="mt-8 flex flex-col gap-4 divide-y-2 px-3">
               {NAV_LINKS.map((link, i) => (
                 <Link
                   key={i}
                   href={link.href}
-                  className="font-semibold capitalize text-[#eee] px-4 py-2 rounded hover:bg-[#22223a] transition-colors"
+                  className="rounded px-4 py-2 font-semibold text-[#eee] capitalize transition-colors hover:bg-[#22223a]"
                 >
                   {link.name}
                 </Link>
               ))}
-              <Link href="/dashboard" className="flex justify-center">
-                <Button variant="custom" className="mt-4">
-                  Dashboard <IconArrowRight />
-                </Button>
-              </Link>
+              <Auth />
             </nav>
           </SheetContent>
         </Sheet>

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return res.json({ err }, { status: 400 });
     }
 
-    const { url } = parsedValues.data;
+    const { name, url } = parsedValues.data;
 
     const existingWebsite = await prisma.website.findFirst({
       where: {
@@ -35,7 +35,15 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await prisma.website.create({
-      data: { url, userId: session.user.id },
+      data: {
+        url,
+        name,
+        user: {
+          connect: {
+            id: session.user.id,
+          },
+        },
+      },
     });
 
     if (!response) {

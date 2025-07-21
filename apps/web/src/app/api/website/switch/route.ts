@@ -1,42 +1,27 @@
-import { auth } from "@/lib/auth";
-import { updateWebsiteValidation } from "@/types/validation/website";
+import { switchWebsiteValidation } from "@/types/validation/website";
 import prisma from "@zero-downtime/db/client";
-import { headers } from "next/headers";
 import { NextRequest, NextResponse as res } from "next/server";
 import { prettifyError } from "zod";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session) {
-      return res.json({ msg: "Login first!" }, { status: 401 });
-    }
-
     const body = await req.json();
-    const parsedValues = updateWebsiteValidation.safeParse(body);
+    const parsedValues = switchWebsiteValidation.safeParse(body);
     if (!parsedValues.success) {
       const err = prettifyError(parsedValues.error);
       return res.json({ err }, { status: 400 });
     }
 
-    const { name, url, websiteId } = parsedValues.data;
+    const { websiteId, isTracking } = parsedValues.data;
 
     const response = await prisma.website.update({
-      where: {
-        id: websiteId
-      },
-      data: {
-        url,
-        name
-      },
+      where: { id: websiteId },
+      data: { isTracking },
     });
 
     if (!response) {
       return res.json(
-        { err: "Error while updating website!" },
+        { err: "Error while switching off website tracking!" },
         { status: 400 },
       );
     }
