@@ -218,7 +218,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-5xl pt-20">
+    <div className="mx-auto w-full max-w-5xl px-4 pt-20">
       <h2
         className={cn(
           "font-outline-1 bg-clip-text text-4xl text-transparent sm:text-5xl",
@@ -239,7 +239,7 @@ export default function Dashboard() {
             className="h-12"
           />
           <Button
-            className="absolute top-1.5 right-2 bg-[#1c0f47] text-[#714ce9]"
+            className="absolute top-1.5 right-2 bg-[#1c0f47] text-[#714ce9] hover:bg-[#1c0f47]"
             size="icon"
           >
             /

@@ -229,7 +229,7 @@ export default function WebsiteDetailsComponent() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-5xl pt-20">
+    <div className="mx-auto w-full max-w-5xl px-4 pt-20">
       <div className="flex items-center gap-3">
         <h2
           className={cn(
@@ -253,7 +253,7 @@ export default function WebsiteDetailsComponent() {
             className="h-12"
           />
           <Button
-            className="absolute top-1.5 right-2 bg-[#1c0f47] text-[#714ce9]"
+            className="absolute top-1.5 right-2 bg-[#1c0f47] text-[#714ce9] hover:bg-[#1c0f47]"
             size="icon"
           >
             /
