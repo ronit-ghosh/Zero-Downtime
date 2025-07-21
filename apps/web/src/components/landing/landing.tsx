@@ -101,7 +101,7 @@ export default function Landing() {
           <Input
             placeholder="Enter website url"
             className={cn(
-              "h-12 border border-[#eee] bg-[#D9D9D9] opacity-45 w-full max-w-xs sm:max-w-md md:w-96",
+              "h-12 w-full max-w-xs border opacity-45 sm:max-w-md md:w-96 dark:border-[#eee] dark:bg-[#D9D9D9]",
               "placeholder:text-lg placeholder:text-black",
             )}
           />

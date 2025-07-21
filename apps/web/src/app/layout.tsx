@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <link rel="shortcut icon" href="/logo.svg" type="image/x-icon" />
-      <body className={`${poppins.variable} antialiased `}>
+      <body className={`${poppins.variable} antialiased dark`}>
         <Provider>{children}</Provider>
       </body>
     </html>
