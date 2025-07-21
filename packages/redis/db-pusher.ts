@@ -12,6 +12,13 @@ interface WebsiteDetails {
 }
 
 const STREAM_NAME = "zero-downtime:db-pusher";
+const WORKER_NAME = "db-pusher";
+
+await client
+  .xGroupCreate(STREAM_NAME, WORKER_NAME, "$", {
+    MKSTREAM: true,
+  })
+  .catch(() => {});
 
 export async function xAddDb(payload: WebsiteDetails): Promise<string | Error> {
   try {

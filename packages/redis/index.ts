@@ -10,6 +10,13 @@ interface WebsiteDetails {
 }
 
 const STREAM_NAME = "zero-downtime:website";
+const WORKER_NAME = "india";
+
+await client
+  .xGroupCreate(STREAM_NAME, WORKER_NAME, "$", {
+    MKSTREAM: true,
+  })
+  .catch(() => {});
 
 async function xAdd(payload: WebsiteDetails): Promise<string | Error> {
   try {
