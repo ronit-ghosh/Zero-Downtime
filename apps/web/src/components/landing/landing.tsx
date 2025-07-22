@@ -5,8 +5,10 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import Navbar from "./navbar";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
 
 export default function Landing() {
+  const router = useRouter();
   return (
     <div className="relative z-20 mx-auto h-full w-full max-w-5xl">
       <Navbar />
@@ -106,6 +108,7 @@ export default function Landing() {
             )}
           />
           <Button
+            onClick={() => router.push("/add-website")}
             variant="custom"
             className="h-12 w-full max-w-xs px-6 text-base font-bold opacity-88 sm:w-auto sm:px-8 sm:text-lg"
           >

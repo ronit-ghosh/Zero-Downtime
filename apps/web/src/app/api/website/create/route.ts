@@ -23,20 +23,26 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, url } = parsedValues.data;
+    const httpsUrl = url.startsWith("https://") ? url : `https://${url}`;
 
-    const existingWebsite = await prisma.website.findFirst({
+    const existingWebsite = await prisma.user.findFirst({
       where: {
-        AND: [{ id: session.user.id }, { url }],
+        id: session.user.id,
+        websites: {
+          some: {
+            url: httpsUrl,
+          },
+        },
       },
     });
-
+    console.log(existingWebsite);
     if (existingWebsite) {
       return res.json({ websiteId: existingWebsite.id });
     }
 
     const response = await prisma.website.create({
       data: {
-        url,
+        url: httpsUrl,
         name,
         user: {
           connect: {

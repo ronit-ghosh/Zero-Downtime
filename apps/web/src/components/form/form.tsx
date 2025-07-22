@@ -1,8 +1,45 @@
-import { cn } from "@/lib/utils";
+"use client";
+
+import { BACKEND_URL, cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function Form() {
+  const [name, setName] = useState<string>("");
+  const [url, setUrl] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
+
+  const handleWebsiteCreate = async () => {
+    if (!BACKEND_URL) {
+      console.error("`NEXT_PUBLIC_BACKEND_URL` is not available in .env!");
+      return;
+    }
+    try {
+      if (!name || !url) return;
+      setLoading(true);
+      const response = await axios.post(`${BACKEND_URL}/api/website/create`, {
+        name,
+        url,
+      });
+      console.log(response.data.id);
+      setLoading(false);
+      toast("Website tracking will be started in 3min.");
+      toast("You can see updated in your dashboard.");
+      router.push("/dashboard");
+    } catch (error) {
+      setLoading(false);
+      toast("Please try again!");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="px-4 pt-20">
       <div
@@ -27,35 +64,51 @@ export default function Form() {
           >
             Add your website
           </h2>
-          <div className="flex flex-col items-start">
-            <Input
-              placeholder="Name"
-              className={cn(
-                "h-12 w-full border opacity-45 sm:w-md dark:border-[#eee] dark:bg-[#D9D9D9]/6",
-                "rounded-2xl pl-4 placeholder:text-lg placeholder:text-[#EEEEEE]",
-              )}
-            />
-            <p className="mt-1 pl-2 text-xs text-[#ddd]">
-              A friendly name to identify your website in the dashboard.
-            </p>
-          </div>
-          <div className="flex flex-col items-start">
-            <Input
-              placeholder="Website URL"
-              className={cn(
-                "h-12 w-full border opacity-45 sm:w-md dark:border-[#eee] dark:bg-[#D9D9D9]/6",
-                "rounded-2xl pl-4 placeholder:text-lg placeholder:text-[#EEEEEE]",
-              )}
-            />
-            <p className="mt-1 pl-2 text-xs text-[#ddd]">
-              The URL of your website. We&apos;ll automatically add https:// if
-              not provided.
-            </p>
-          </div>
-
-          <Button variant="custom" className="px-10 py-6 text-xl">
-            Submit
-          </Button>
+          <form
+            className="flex flex-col items-center space-y-4"
+            onSubmit={handleWebsiteCreate}
+          >
+            <div className="flex flex-col items-start">
+              <Input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={loading}
+                placeholder="Name"
+                className={cn(
+                  "h-12 w-full border opacity-45 sm:w-md dark:border-[#eee]",
+                  "rounded-2xl pl-4 placeholder:text-lg placeholder:text-[#EEEEEE]",
+                )}
+              />
+              <p className="mt-1 pl-2 text-xs text-[#ddd]">
+                A friendly name to identify your website in the dashboard.
+              </p>
+            </div>
+            <div className="flex flex-col items-start">
+              <Input
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={loading}
+                placeholder="Website URL"
+                className={cn(
+                  "h-12 w-full border opacity-45 sm:w-md dark:border-[#eee]",
+                  "rounded-2xl pl-4 placeholder:text-lg placeholder:text-[#EEEEEE]",
+                )}
+              />
+              <p className="mt-1 pl-2 text-xs text-[#ddd]">
+                The URL of your website. We&apos;ll automatically add https://
+                if not provided.
+              </p>
+            </div>
+            <Button
+              disabled={name?.length === 0 || url?.length === 0 || loading}
+              type="submit"
+              variant="custom"
+              className="px-10 py-6 text-xl"
+            >
+              {loading ? "Submiitting..." : "Submit"}
+            </Button>
+          </form>
         </div>
       </div>
     </main>
