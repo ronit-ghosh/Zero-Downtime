@@ -3,7 +3,7 @@ import prisma from "@zero-downtime/db/client";
 import { NextRequest, NextResponse as res } from "next/server";
 import { prettifyError } from "zod";
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const parsedValues = switchWebsiteValidation.safeParse(body);
@@ -26,7 +26,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return res.json({ websiteId: response.id });
+    return res.json({
+      websiteId: response.id,
+      isTracking: response.isTracking,
+    });
   } catch (error) {
     console.error(error);
     return res.json({ msg: "Something went wrong! " }, { status: 500 });

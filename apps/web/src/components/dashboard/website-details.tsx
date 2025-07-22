@@ -51,10 +51,10 @@ interface WebsiteDetails {
   id: string;
   name: string;
   url: string;
+  isTracking: boolean;
   websiteTicks: WebsiteTick[];
 }
 
-// Updated columns to work directly with WebsiteTick array
 export const columns: ColumnDef<WebsiteTick>[] = [
   {
     id: "select",
@@ -180,6 +180,7 @@ export default function WebsiteDetailsComponent(param: {
   const [data, setData] = React.useState<WebsiteTick[]>([]);
   const [allData, setAllData] = React.useState<WebsiteDetails>();
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [reload, setReload] = React.useState("");
 
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -215,7 +216,24 @@ export default function WebsiteDetailsComponent(param: {
       } finally {
       }
     })();
-  }, [param.id]);
+  }, [param.id, reload]);
+
+  const handleSwitch = async (event: boolean) => {
+    if (!allData?.id) return;
+    try {
+      const response = await axios.post(`${BACKEND_URL}/api/website/switch`, {
+        websiteId: allData.id,
+        isTracking: event,
+      });
+      toast(
+        `Website checking is turned ${response.data.isTracking ? "on" : "off"}`,
+      );
+      setReload("true");
+    } catch (error) {
+      toast("Try again!");
+      console.error(error);
+    }
+  };
 
   const table = useReactTable({
     data,
@@ -247,7 +265,13 @@ export default function WebsiteDetailsComponent(param: {
         >
           {allData?.name}
         </h2>
-        <Switch className="mb-4 cursor-pointer" />
+        {allData && (
+          <Switch
+            onCheckedChange={(e) => handleSwitch(e)}
+            checked={allData?.isTracking}
+            className="mb-4 cursor-pointer"
+          />
+        )}
       </div>
       <div className="flex items-center py-4">
         <div className="relative mr-2 w-full">
