@@ -37,6 +37,14 @@ import { BACKEND_URL, cn } from "@/lib/utils";
 import axios from "axios";
 import { toast } from "sonner";
 import { formatDistanceToNowStrict } from "date-fns";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import Form from "../form/form";
 
 interface WebsiteDetails {
   websiteId: string;
@@ -49,6 +57,12 @@ interface WebsiteDetails {
 }
 
 export const columns: ColumnDef<WebsiteDetails>[] = [
+  {
+    accessorKey: "websiteId",
+    header: () => null, 
+    cell: () => null,
+    enableHiding: false,
+  },
   {
     accessorKey: "name",
     header: "Name",
@@ -121,32 +135,51 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const website = row.original;
-
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="h-8 w-8 bg-transparent p-0 text-[#eee] hover:bg-blue-800/10">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="bg-gradient-to-tl from-[#0A071E] to-[#040116]"
-            align="end"
-          >
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(website.url)}
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="h-8 w-8 bg-transparent p-0 text-[#eee] hover:bg-blue-800/10">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="bg-gradient-to-tl from-[#0A071E] to-[#040116]"
+              align="end"
             >
-              Copy URL
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Visit Website</DropdownMenuItem>
-            <DropdownMenuItem>Edit Website</DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">
-              Delete Website{" "}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(website.url);
+                  toast("URL copied");
+                }}
+              >
+                Copy URL
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    Edit Website
+                  </DropdownMenuItem>
+                </DialogTrigger>
+                <DialogContent
+                  showCloseButton={false}
+                  className="flex h-auto w-full items-center justify-center border-none bg-transparent p-0"
+                >
+                  <DialogTitle />
+                  <Form
+                    isUpdate
+                    websiteId={row.getValue("websiteId")}
+                  />
+                </DialogContent>
+              </Dialog>
+              <DropdownMenuItem variant="destructive">
+                Delete Website{" "}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
   },
@@ -162,6 +195,7 @@ export default function Dashboard() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [data, setData] = React.useState<WebsiteDetails[]>();
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
 
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -189,7 +223,6 @@ export default function Dashboard() {
         setData(resposne.data.websites);
       } catch (error) {
         console.error(error);
-      } finally {
       }
     })();
   }, []);
@@ -306,7 +339,10 @@ export default function Dashboard() {
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
-                  className="border-b hover:bg-[#040116]/50"
+                  onClick={() =>
+                    router.push(`/dashboard/website/${row.original.websiteId}`)
+                  }
+                  className="border-b hover:bg-blue-600/10"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >

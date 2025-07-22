@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse as res } from "next/server";
 import { prettifyError } from "zod";
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

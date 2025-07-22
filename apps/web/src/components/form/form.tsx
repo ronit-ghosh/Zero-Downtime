@@ -3,17 +3,60 @@
 import { BACKEND_URL, cn } from "@/lib/utils";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-export default function Form() {
+export default function Form({
+  isUpdate,
+  websiteId,
+}: {
+  isUpdate: boolean;
+  websiteId?: string;
+}) {
   const [name, setName] = useState<string>("");
   const [url, setUrl] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
+  useEffect(() => {
+    if (!isUpdate) return;
+
+    (async function getWebsite() {
+      if (!websiteId) return;
+      const response = await axios.get(
+        `${BACKEND_URL}/api/website/get/id?id=${websiteId}`,
+      );
+      setName(response.data.website.name);
+      setUrl(response.data.website.url);
+    })();
+  }, [isUpdate, websiteId]);
+
+  const handleWebsiteUpdate = async () => {
+    if (!BACKEND_URL) {
+      console.error("`NEXT_PUBLIC_BACKEND_URL` is not available in .env!");
+      return;
+    }
+    try {
+      if (!websiteId) return;
+      setLoading(true);
+      const response = await axios.post(`${BACKEND_URL}/api/website/update`, {
+        name,
+        url,
+        websiteId,
+      });
+      console.log(response.data.id);
+      setLoading(false);
+      toast("You can see updated in your dashboard.");
+    } catch (error) {
+      setLoading(false);
+      toast("Please try again!");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleWebsiteCreate = async () => {
     if (!BACKEND_URL) {
       console.error("`NEXT_PUBLIC_BACKEND_URL` is not available in .env!");
@@ -45,28 +88,28 @@ export default function Form() {
       <div
         className={cn(
           "mx-auto grid h-140 w-full max-w-200 place-items-center rounded-2xl",
-          "bg-gradient-to-br from-transparent to-[#494949]/20",
+          `bg-gradient-to-br ${isUpdate ? "from-[#2828286a] to-[#5454545b] backdrop-blur-sm" : "from-transparent to-[#494949]/20"}`,
         )}
       >
         <div
           className={cn(
-            "relative h-[98%] w-[98.5%] rounded-2xl bg-gradient-to-br from-transparent to-[#494949]/20 p-4",
+            `relative h-[98%] w-[98.5%] rounded-2xl bg-gradient-to-br ${isUpdate ? "from-[#040217a2] to-[#07032a8a] backdrop-blur-sm" : "from-transparent to-[#494949]/20"} p-4`,
             "flex flex-col items-center justify-center gap-6 py-20",
           )}
         >
-          <TopGlow />
-          <LeftGlow />
+          {!isUpdate && <TopGlow />}
+          {!isUpdate && <LeftGlow />}
           <h2
             className={cn(
               "font-outline-1 bg-clip-text text-4xl text-transparent sm:text-5xl",
               "bg-gradient-to-r from-[#ccc1f1] to-[#F6F6FE] pb-6",
             )}
           >
-            Add your website
+            {isUpdate ? "Update" : "Add"} your website
           </h2>
           <form
             className="flex flex-col items-center space-y-4"
-            onSubmit={handleWebsiteCreate}
+            onSubmit={isUpdate ? handleWebsiteUpdate : handleWebsiteCreate}
           >
             <div className="flex flex-col items-start">
               <Input
