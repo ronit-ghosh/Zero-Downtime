@@ -17,8 +17,17 @@ export async function GET() {
       where: { userId: session.user.id },
       select: {
         id: true,
+        name: true,
         url: true,
-        websiteTicks: true,
+        websiteTicks: {
+          select: {
+            responseTimeMs: true,
+            statusCode: true,
+            errorCode: true,
+            updatedAt: true,
+          },
+          take: 1,
+        },
       },
     });
 
@@ -30,7 +39,12 @@ export async function GET() {
       websites: response.map((w) => {
         return {
           websiteId: w.id,
-          websiteUrl: w.url,
+          name: w.name,
+          url: w.url,
+          responseMs: w.websiteTicks[0].responseTimeMs,
+          errorCode: w.websiteTicks[0].errorCode,
+          statusCode: w.websiteTicks[0].statusCode,
+          lastChecked: w.websiteTicks[0].updatedAt,
         };
       }),
     });

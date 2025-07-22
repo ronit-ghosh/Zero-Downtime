@@ -33,54 +33,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { BACKEND_URL, cn } from "@/lib/utils";
+import axios from "axios";
+import { toast } from "sonner";
+import { formatDistanceToNow } from 'date-fns';
 
-const data: WebsiteDetails[] = [
-  {
-    name: "Artify",
-    url: "https://artify.ronitghosh.site",
-    responseMs: 100,
-    statusCode: 200,
-    lastChecked: "5 minutes ago",
-  },
-  {
-    name: "Viora",
-    url: "https://viora.ronitghosh.site",
-    responseMs: 120,
-    statusCode: 200,
-    lastChecked: "2 minutes ago",
-  },
-  {
-    name: "Zero Downtime",
-    url: "https://zero-downtime.ronitghosh.site",
-    responseMs: 95,
-    statusCode: 400,
-    lastChecked: "1 minute ago",
-  },
-  {
-    name: "Ignite Studios",
-    url: "https://ignite.ronitghosh.site",
-    responseMs: 150,
-    statusCode: 400,
-    lastChecked: "10 minutes ago",
-  },
-  {
-    name: "TPSystelink",
-    url: "https://tpsystelink.in",
-    responseMs: 110,
-    statusCode: 200,
-    lastChecked: "3 minutes ago",
-  },
-];
-
-export type WebsiteDetails = {
+interface WebsiteDetails {
+  websiteId: string;
   name: string;
   url: string;
   responseMs: number;
-  errorCode?: string;
+  errorCode?: string | "";
   statusCode: number;
   lastChecked: string;
-};
+}
 
 export const columns: ColumnDef<WebsiteDetails>[] = [
   {
@@ -129,10 +95,22 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
     accessorKey: "errorCode",
     header: "Error Code",
     cell: ({ row }) => {
+      const errorCode = row.getValue("errorCode") as number | null;
       return (
         <div className="text-center font-medium text-[#eee]">
-          {row.getValue("errorCode") || "None"}
+          {errorCode || "None"}
         </div>
+      );
+    },
+  },
+  {
+    accessorKey: "lastChecked",
+    header: "Last Checked",
+    cell: ({ row }) => {
+      const lastChecked = row.getValue("lastChecked") as string;
+      const timeAgo = formatDistanceToNow(new Date(lastChecked), { addSuffix: true });
+      return (
+        <div className="text-center font-medium text-[#eee]">{timeAgo}</div>
       );
     },
   },
@@ -140,7 +118,7 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original;
+      const website = row.original;
 
       return (
         <DropdownMenu>
@@ -155,7 +133,7 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
             align="end"
           >
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.url)}
+              onClick={() => navigator.clipboard.writeText(website.url)}
             >
               Copy URL
             </DropdownMenuItem>
@@ -180,26 +158,42 @@ export default function Dashboard() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [data, setData] = React.useState<WebsiteDetails[]>();
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === "/") {
-        event.preventDefault(); // optional: prevent default browser behavior
+        event.preventDefault();
         searchInputRef.current?.focus();
       }
     };
 
     document.addEventListener("keypress", handleKeyPress);
 
-    // Cleanup listener on unmount
     return () => {
       document.removeEventListener("keypress", handleKeyPress);
     };
   }, []);
 
+  React.useEffect(() => {
+    (async function fetchWebsites() {
+      try {
+        const resposne = await axios.get(`${BACKEND_URL}/api/website/get`);
+        if (!resposne) {
+          toast("Please reload!");
+          console.error("Can't fetch websites!");
+        }
+        setData(resposne.data.websites);
+      } catch (error) {
+        console.error(error);
+      } finally {
+      }
+    })();
+  }, []);
+
   const table = useReactTable({
-    data,
+    data: data ?? [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -225,7 +219,7 @@ export default function Dashboard() {
           "bg-gradient-to-r from-[#ccc1f1] to-[#F6F6FE] pb-6",
         )}
       >
-        Add your website
+        Your Dashboard
       </h2>
       <div className="flex items-center py-4">
         <div className="relative mr-2 w-full">
