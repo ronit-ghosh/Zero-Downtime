@@ -21,11 +21,21 @@ export async function GET(req: NextRequest) {
     }
 
     const response = await prisma.website.findFirst({
-      where: { AND: [{ userId: session.user.id }, { id: websiteId }] },
+      where: {
+        AND: [{ userId: session.user.id }, { id: websiteId }],
+      },
       select: {
         id: true,
+        name: true,
         url: true,
-        websiteTicks: true,
+        websiteTicks: {
+          select: {
+            responseTimeMs: true,
+            errorCode: true,
+            statusCode: true,
+            updatedAt: true,
+          },
+        },
       },
     });
 

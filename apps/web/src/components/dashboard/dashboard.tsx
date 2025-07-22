@@ -36,7 +36,7 @@ import {
 import { BACKEND_URL, cn } from "@/lib/utils";
 import axios from "axios";
 import { toast } from "sonner";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNowStrict } from "date-fns";
 
 interface WebsiteDetails {
   websiteId: string;
@@ -108,7 +108,9 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
     header: "Last Checked",
     cell: ({ row }) => {
       const lastChecked = row.getValue("lastChecked") as string;
-      const timeAgo = formatDistanceToNow(new Date(lastChecked), { addSuffix: true });
+      const timeAgo = formatDistanceToNowStrict(new Date(lastChecked), {
+        addSuffix: true,
+      });
       return (
         <div className="text-center font-medium text-[#eee]">{timeAgo}</div>
       );

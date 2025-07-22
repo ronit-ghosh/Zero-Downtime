@@ -33,52 +33,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { BACKEND_URL, cn } from "@/lib/utils";
 import { Switch } from "../ui/switch";
 import { Checkbox } from "../ui/checkbox";
+import axios from "axios";
+import { toast } from "sonner";
+import { formatDistanceToNowStrict } from "date-fns";
 
-const data: WebsiteDetails[] = [
-  {
-    url: "https://artify.ronitghosh.site",
-    responseMs: 100,
-    statusCode: 200,
-    lastChecked: "5 minutes ago",
-  },
-  {
-    url: "https://viora.ronitghosh.site",
-    responseMs: 120,
-    statusCode: 200,
-    lastChecked: "2 minutes ago",
-  },
-  {
-    url: "https://zero-downtime.ronitghosh.site",
-    responseMs: 95,
-    statusCode: 400,
-    lastChecked: "1 minute ago",
-  },
-  {
-    url: "https://ignite.ronitghosh.site",
-    responseMs: 150,
-    statusCode: 400,
-    lastChecked: "10 minutes ago",
-  },
-  {
-    url: "https://tpsystelink.in",
-    responseMs: 110,
-    statusCode: 200,
-    lastChecked: "3 minutes ago",
-  },
-];
-
-export type WebsiteDetails = {
-  url: string;
-  responseMs: number;
-  errorCode?: string;
+interface WebsiteTick {
+  responseTimeMs: number;
+  errorCode: number | null;
   statusCode: number;
-  lastChecked: string;
-};
+  updatedAt: string;
+}
 
-export const columns: ColumnDef<WebsiteDetails>[] = [
+interface WebsiteDetails {
+  id: string;
+  name: string;
+  url: string;
+  websiteTicks: WebsiteTick[];
+}
+
+// Updated columns to work directly with WebsiteTick array
+export const columns: ColumnDef<WebsiteTick>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -102,26 +79,21 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "url",
-    header: "Website URL",
-    cell: ({ row }) => (
-      <div className="text-[#eee] lowercase">{row.getValue("url")}</div>
-    ),
-  },
-  {
-    accessorKey: "responseMs",
+    id: "responseTimeMs",
     header: "Response (ms)",
+    accessorKey: "responseTimeMs",
     cell: ({ row }) => (
-      <div className="text-center text-[#eee] lowercase">
-        {row.getValue("responseMs")}
+      <div className="pl-10 text-[#eee]">
+        {row.original.responseTimeMs ?? "N/A"}
       </div>
     ),
   },
   {
-    accessorKey: "statusCode",
+    id: "statusCode",
     header: "Status Code",
+    accessorKey: "statusCode",
     cell: ({ row }) => {
-      const value = row.getValue("statusCode") as number;
+      const value = row.original.statusCode;
       return (
         <div className="text-center font-medium">
           <p
@@ -130,29 +102,43 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
               "mx-auto w-12 rounded-full py-1",
             )}
           >
-            {value}
+            {value ?? "N/A"}
           </p>
         </div>
       );
     },
   },
   {
-    accessorKey: "errorCode",
+    id: "errorCode",
     header: "Error Code",
+    accessorKey: "errorCode",
     cell: ({ row }) => {
+      const errorCode = row.original.errorCode;
       return (
         <div className="text-center font-medium text-[#eee]">
-          {row.getValue("errorCode") || "None"}
+          {errorCode ?? "None"}
         </div>
       );
+    },
+  },
+  {
+    id: "updatedAt",
+    header: "Updated At",
+    accessorKey: "updatedAt",
+    cell: ({ row }) => {
+      const updatedAt = row.original.updatedAt;
+      const timeAgo = formatDistanceToNowStrict(new Date(updatedAt), {
+        addSuffix: true,
+      });
+
+      return <div className="text-center text-[#eee]">{timeAgo}</div>;
     },
   },
   {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original;
-
+      const tick = row.original;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -166,15 +152,13 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
             align="end"
           >
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.url)}
+              onClick={() => navigator.clipboard.writeText(tick.updatedAt)}
             >
-              Copy URL
+              Copy Timestamp
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Visit Website</DropdownMenuItem>
-            <DropdownMenuItem>Edit Website</DropdownMenuItem>
-            <DropdownMenuItem variant="destructive">
-              Delete Website{" "}
+            <DropdownMenuItem disabled className="text-red-500">
+              Delete Entry
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -183,7 +167,9 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
   },
 ];
 
-export default function WebsiteDetailsComponent() {
+export default function WebsiteDetailsComponent(param: {
+  id: string | string[];
+}) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -191,23 +177,45 @@ export default function WebsiteDetailsComponent() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [data, setData] = React.useState<WebsiteTick[]>([]);
+  const [allData, setAllData] = React.useState<WebsiteDetails>();
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.key === "/") {
-        event.preventDefault(); // optional: prevent default browser behavior
+        event.preventDefault();
         searchInputRef.current?.focus();
       }
     };
 
     document.addEventListener("keypress", handleKeyPress);
 
-    // Cleanup listener on unmount
     return () => {
       document.removeEventListener("keypress", handleKeyPress);
     };
   }, []);
+
+  React.useEffect(() => {
+    (async function fetchWebsiteTicks() {
+      try {
+        const response = await axios.get(
+          `${BACKEND_URL}/api/website/get/id?id=${param.id}`,
+        );
+        if (!response) {
+          toast("Please reload!");
+          return;
+        }
+        setAllData(response.data.website);
+        const websiteTicks = response.data.website.websiteTicks || [];
+        setData(websiteTicks);
+      } catch (error) {
+        console.error(error);
+        toast("Error loading website data");
+      } finally {
+      }
+    })();
+  }, [param.id]);
 
   const table = useReactTable({
     data,
@@ -234,10 +242,10 @@ export default function WebsiteDetailsComponent() {
         <h2
           className={cn(
             "font-outline-1 bg-clip-text text-4xl text-transparent sm:text-5xl",
-            "bg-gradient-to-r from-[#ccc1f1] to-[#F6F6FE] pb-6",
+            "bg-gradient-to-r from-[#ccc1f1] to-[#F6F6FE] pb-6 capitalize",
           )}
         >
-          Artify
+          {allData?.name}
         </h2>
         <Switch className="mb-4 cursor-pointer" />
       </div>
@@ -245,10 +253,15 @@ export default function WebsiteDetailsComponent() {
         <div className="relative mr-2 w-full">
           <Input
             ref={searchInputRef}
-            placeholder="Search..."
-            value={(table.getColumn("url")?.getFilterValue() as string) ?? ""}
+            placeholder="Search by response time or status..."
+            value={
+              (table.getColumn("responseTimeMs")?.getFilterValue() as string) ??
+              ""
+            }
             onChange={(event) =>
-              table.getColumn("url")?.setFilterValue(event.target.value)
+              table
+                .getColumn("responseTimeMs")
+                ?.setFilterValue(event.target.value)
             }
             className="h-12"
           />
@@ -344,7 +357,7 @@ export default function WebsiteDetailsComponent() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  No website monitoring data found.
                 </TableCell>
               </TableRow>
             )}
