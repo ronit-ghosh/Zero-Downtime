@@ -59,7 +59,7 @@ interface WebsiteDetails {
 export const columns: ColumnDef<WebsiteDetails>[] = [
   {
     accessorKey: "websiteId",
-    header: () => null, 
+    header: () => null,
     cell: () => null,
     enableHiding: false,
   },
@@ -135,6 +135,17 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const website = row.original;
+      const handleDeleteWebsite = async () => {
+        try {
+          await axios.post(`${BACKEND_URL}/api/website/delete`, {
+            websiteId: row.getValue("websiteId"),
+          });
+          toast("Website deleted, Reload to see update!");
+        } catch (error) {
+          console.error(error);
+          toast("Try again!");
+        }
+      };
       return (
         <div onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
@@ -168,13 +179,13 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
                   className="flex h-auto w-full items-center justify-center border-none bg-transparent p-0"
                 >
                   <DialogTitle />
-                  <Form
-                    isUpdate
-                    websiteId={row.getValue("websiteId")}
-                  />
+                  <Form isUpdate websiteId={row.getValue("websiteId")} />
                 </DialogContent>
               </Dialog>
-              <DropdownMenuItem variant="destructive">
+              <DropdownMenuItem
+                onClick={handleDeleteWebsite}
+                variant="destructive"
+              >
                 Delete Website{" "}
               </DropdownMenuItem>
             </DropdownMenuContent>
