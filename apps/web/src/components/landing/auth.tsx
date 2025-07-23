@@ -23,7 +23,7 @@ export default function Auth() {
   const [name, setName] = useState<string>();
   const [password, setPassword] = useState<string>();
   const [loading, setLoading] = useState(false);
-  const [loginModal, setLoginModal] = useState(false);
+  const [loginModal, setLoginModal] = useState(true);
 
   useEffect(() => {
     (async function checkSession() {
@@ -120,9 +120,9 @@ export default function Auth() {
                   "bg-gradient-to-r from-[#ccc1f1] to-[#F6F6FE] pb-6",
                 )}
               >
-                {!loginModal
+                {loginModal
                   ? "Log into your account"
-                  : "Signup with youu email"}
+                  : "Signup with your email"}
               </h2>
               {!loginModal && (
                 <div className="flex flex-col items-start">
