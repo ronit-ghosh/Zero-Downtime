@@ -12,7 +12,7 @@ export default function Form({
   isUpdate,
   websiteId,
 }: {
-  isUpdate: boolean;
+  isUpdate?: boolean;
   websiteId?: string;
 }) {
   const [name, setName] = useState<string>("");
