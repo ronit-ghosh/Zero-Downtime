@@ -1,5 +1,9 @@
 "use client";
-import { IconChevronDown, IconSearch } from "@tabler/icons-react";
+import {
+  IconArrowLeft,
+  IconChevronDown,
+  IconPlus,
+} from "@tabler/icons-react";
 import * as React from "react";
 import {
   ColumnDef,
@@ -39,6 +43,7 @@ import { Checkbox } from "../ui/checkbox";
 import axios from "axios";
 import { toast } from "sonner";
 import { formatDistanceToNowStrict } from "date-fns";
+import { useRouter } from "next/navigation";
 
 interface WebsiteTick {
   responseTimeMs: number;
@@ -179,8 +184,9 @@ export default function WebsiteDetailsComponent(param: {
   const [rowSelection, setRowSelection] = React.useState({});
   const [data, setData] = React.useState<WebsiteTick[]>([]);
   const [allData, setAllData] = React.useState<WebsiteDetails>();
-  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const [reload, setReload] = React.useState("");
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
 
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -256,6 +262,14 @@ export default function WebsiteDetailsComponent(param: {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pt-20">
+      <Button
+        onClick={() => router.back()}
+        variant="outline"
+        className="mb-10 bg-transparent"
+      >
+        <IconArrowLeft className="size" />
+        Back
+      </Button>
       <div className="flex items-center gap-3">
         <h2
           className={cn(
@@ -296,14 +310,18 @@ export default function WebsiteDetailsComponent(param: {
             /
           </Button>
         </div>
-        <Button variant="custom" className="mr-2 ml-auto">
-          Search
-          <IconSearch />{" "}
+        <Button
+          onClick={() => router.push("/add-website")}
+          variant="custom"
+          className="mr-2 ml-auto py-6"
+        >
+          Add
+          <IconPlus />{" "}
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="custom" className="ml-auto">
+            <Button variant="custom" className="ml-auto py-6">
               Columns <IconChevronDown />{" "}
             </Button>
           </DropdownMenuTrigger>

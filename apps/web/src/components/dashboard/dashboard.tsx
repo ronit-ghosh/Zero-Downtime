@@ -1,5 +1,5 @@
 "use client";
-import { IconChevronDown, IconSearch } from "@tabler/icons-react";
+import { IconChevronDown, IconPlus, IconPower } from "@tabler/icons-react";
 import * as React from "react";
 import {
   ColumnDef,
@@ -45,6 +45,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import Form from "../form/form";
+import { authClient } from "@/lib/auth-client";
 
 interface WebsiteDetails {
   websiteId: string;
@@ -259,14 +260,26 @@ export default function Dashboard() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 pt-20">
-      <h2
-        className={cn(
-          "font-outline-1 bg-clip-text text-4xl text-transparent sm:text-5xl",
-          "bg-gradient-to-r from-[#ccc1f1] to-[#F6F6FE] pb-6",
-        )}
-      >
-        Your Dashboard
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2
+          className={cn(
+            "font-outline-1 bg-clip-text text-4xl text-transparent sm:text-5xl",
+            "bg-gradient-to-r from-[#ccc1f1] to-[#F6F6FE] pb-6",
+          )}
+        >
+          Your Dashboard
+        </h2>
+        <Button
+          size="icon"
+          variant="custom"
+          onClick={() => {
+            authClient.signOut();
+            router.replace("/");
+          }}
+        >
+          <IconPower className="size-5" />
+        </Button>
+      </div>
       <div className="flex items-center py-4">
         <div className="relative mr-2 w-full">
           <Input
@@ -285,14 +298,18 @@ export default function Dashboard() {
             /
           </Button>
         </div>
-        <Button variant="custom" className="mr-2 ml-auto">
-          Search
-          <IconSearch />{" "}
+        <Button
+          onClick={() => router.push("/add-website")}
+          variant="custom"
+          className="mr-2 ml-auto py-6"
+        >
+          Create
+          <IconPlus />{" "}
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="custom" className="ml-auto">
+            <Button variant="custom" className="ml-auto py-6">
               Columns <IconChevronDown />{" "}
             </Button>
           </DropdownMenuTrigger>

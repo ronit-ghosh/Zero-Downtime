@@ -143,14 +143,22 @@ export default function Form({
                 if not provided.
               </p>
             </div>
-            <Button
-              disabled={name?.length === 0 || url?.length === 0 || loading}
-              type="submit"
-              variant="custom"
-              className="px-10 py-6 text-xl"
-            >
-              {loading ? "Submiitting..." : "Submit"}
-            </Button>
+            <div className="flex flex-col items-center justify-center gap-3">
+              <Button
+                disabled={name?.length === 0 || url?.length === 0 || loading}
+                type="submit"
+                variant="custom"
+                className="px-10 py-6 text-xl"
+              >
+                {loading ? "Submiitting..." : "Submit"}
+              </Button>
+              <p
+                onClick={() => router.push("/dashboard")}
+                className="text-primary/80 w-full cursor-pointer border-t pt-4 text-center text-sm underline"
+              >
+                Go to Dashboard
+              </p>
+            </div>
           </form>
         </div>
       </div>
