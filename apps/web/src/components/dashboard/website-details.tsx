@@ -1,9 +1,5 @@
 "use client";
-import {
-  IconArrowLeft,
-  IconChevronDown,
-  IconPlus,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconChevronDown, IconPlus } from "@tabler/icons-react";
 import * as React from "react";
 import {
   ColumnDef,
@@ -58,6 +54,15 @@ interface WebsiteDetails {
   url: string;
   isTracking: boolean;
   websiteTicks: WebsiteTick[];
+}
+
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  totalTicks: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 export const columns: ColumnDef<WebsiteTick>[] = [
@@ -175,6 +180,7 @@ export const columns: ColumnDef<WebsiteTick>[] = [
 export default function WebsiteDetailsComponent(param: {
   id: string | string[];
 }) {
+  // TODO: pagination, polling
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -184,7 +190,10 @@ export default function WebsiteDetailsComponent(param: {
   const [rowSelection, setRowSelection] = React.useState({});
   const [data, setData] = React.useState<WebsiteTick[]>([]);
   const [allData, setAllData] = React.useState<WebsiteDetails>();
-  const [reload, setReload] = React.useState("");
+  const [reload, setReload] = React.useState(false);
+  const [pagination, setPagination] = React.useState<PaginationInfo | null>(null);
+  const [page, setPage] = React.useState(1);
+  const [limit] = React.useState(30);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
   const router = useRouter();
 
@@ -207,7 +216,7 @@ export default function WebsiteDetailsComponent(param: {
     (async function fetchWebsiteTicks() {
       try {
         const response = await axios.get(
-          `${BACKEND_URL}/api/website/get/id?id=${param.id}`,
+          `${BACKEND_URL}/api/website/get/id?id=${param.id}&page=${page}&limit=${limit}`,
         );
         if (!response) {
           toast("Please reload!");
@@ -216,13 +225,14 @@ export default function WebsiteDetailsComponent(param: {
         setAllData(response.data.website);
         const websiteTicks = response.data.website.websiteTicks || [];
         setData(websiteTicks);
+        setPagination(response.data.pagination);
       } catch (error) {
         console.error(error);
         toast("Error loading website data");
       } finally {
       }
     })();
-  }, [param.id, reload]);
+  }, [param.id, reload, page, limit]);
 
   const handleSwitch = async (event: boolean) => {
     if (!allData?.id) return;
@@ -234,7 +244,7 @@ export default function WebsiteDetailsComponent(param: {
       toast(
         `Website checking is turned ${response.data.isTracking ? "on" : "off"}`,
       );
-      setReload("true");
+      setReload(true);
     } catch (error) {
       toast("Try again!");
       console.error(error);
@@ -410,20 +420,23 @@ export default function WebsiteDetailsComponent(param: {
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div>
-          <div className="space-x-2">
+          <div className="space-x-2 flex items-center">
+            <span className="text-xs text-[#aaa]">
+              Page {pagination ? pagination.page : 1} of {pagination ? pagination.totalPages : 1}
+            </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => setPage((p) => (pagination && pagination.hasPrevPage ? p - 1 : p))}
+              disabled={!pagination || !pagination.hasPrevPage}
             >
               Previous
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setPage((p) => (pagination && pagination.hasNextPage ? p + 1 : p))}
+              disabled={!pagination || !pagination.hasNextPage}
             >
               Next
             </Button>
