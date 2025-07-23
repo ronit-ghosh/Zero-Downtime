@@ -219,7 +219,7 @@ export default function Auth() {
                   className="w-full px-10 py-6 text-lg"
                 >
                   <IconBrandGoogle className="size-5" />
-                  {loading ? "Logging in..." : "Signin with Google"}
+                  Signin with Google
                 </Button>
               )}
               {loginModal ? (
