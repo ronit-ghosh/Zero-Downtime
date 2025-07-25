@@ -1,7 +1,22 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalDependencies": [".env"],
+  "globalDependencies": ["bun.lock"],
+  "globalEnv": [
+    "REGION_ID",
+    "WORKER_ID",
+    "DB_PUSHER_ID",
+    "DB_PUSHER_WORKER_ID",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "BETTER_AUTH_SECRET",
+    "BASE_URL",
+    "NEXT_PUBLIC_BACKEND_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "RESEND_API_KEY",
+    "RESEND_EMAIL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
