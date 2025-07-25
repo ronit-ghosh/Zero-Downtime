@@ -1,6 +1,8 @@
 import { createClient } from "redis";
+import { config } from "dotenv";
+config({ path: "../../.env", quiet: true });
 
-const client = await createClient()
+const client = await createClient({ url: process.env.REDIS_URL })
   .on("error", (err) => console.log("Redis Client Error", err))
   .connect();
 
