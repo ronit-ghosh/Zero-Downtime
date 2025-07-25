@@ -109,7 +109,14 @@ export default function Form({
           </h2>
           <form
             className="flex flex-col items-center space-y-4"
-            onSubmit={isUpdate ? handleWebsiteUpdate : handleWebsiteCreate}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (isUpdate) {
+                handleWebsiteUpdate();
+              } else {
+                handleWebsiteCreate();
+              }
+            }}
           >
             <div className="flex flex-col items-start">
               <Input
