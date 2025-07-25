@@ -92,7 +92,9 @@ export default function Navbar() {
         </ul>
       </nav>
       {/* Desktop Dashboard Button */}
+      <div className="md:block hidden">
       <Auth />
+      </div>
       {/* Mobile Hamburger + Sheet */}
       <div className="md:hidden">
         <Sheet>
