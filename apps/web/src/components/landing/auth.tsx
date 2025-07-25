@@ -245,7 +245,7 @@ export default function Auth() {
   }
 
   return (
-    <Link href="/dashboard" className="hidden md:block">
+    <Link href="/dashboard">
       <Button variant="custom">
         Dashboard
         <IconArrowRight />

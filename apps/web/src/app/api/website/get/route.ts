@@ -37,6 +37,13 @@ export async function GET() {
 
     return res.json({
       websites: response.map((w) => {
+        if (w.websiteTicks.length === 0) {
+          return {
+            websiteId: w.id,
+            name: w.name,
+            url: w.url,
+          };
+        }
         return {
           websiteId: w.id,
           name: w.name,

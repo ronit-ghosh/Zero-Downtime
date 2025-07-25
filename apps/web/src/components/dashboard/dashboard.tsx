@@ -67,31 +67,34 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => (
-      <div className="text-[#eee] capitalize">{row.getValue("name")}</div>
-    ),
+    cell: ({ row }) => {
+      const name: string = row.getValue("name") || "-";
+      return <div className="text-[#eee] capitalize">{name}</div>;
+    },
   },
   {
     accessorKey: "url",
     header: "URL",
-    cell: ({ row }) => (
-      <div className="text-[#eee] lowercase">{row.getValue("url")}</div>
-    ),
+    cell: ({ row }) => {
+      const url: string = row.getValue("url") || "-";
+      return <div className="text-[#eee] lowercase">{url}</div>;
+    },
   },
   {
     accessorKey: "responseMs",
     header: "Response (ms)",
-    cell: ({ row }) => (
-      <div className="text-center text-[#eee] lowercase">
-        {row.getValue("responseMs")} ms
-      </div>
-    ),
+    cell: ({ row }) => {
+      const responseMs: string = row.getValue("responseMs") || "-";
+      return (
+        <div className="text-center text-[#eee] lowercase">{responseMs} ms</div>
+      );
+    },
   },
   {
     accessorKey: "statusCode",
     header: "Status Code",
     cell: ({ row }) => {
-      const value = row.getValue("statusCode") as number;
+      const value: number = row.getValue("statusCode") || 0;
       return (
         <div className="text-center font-medium">
           <p
@@ -123,9 +126,14 @@ export const columns: ColumnDef<WebsiteDetails>[] = [
     header: "Last Checked",
     cell: ({ row }) => {
       const lastChecked = row.getValue("lastChecked") as string;
-      const timeAgo = formatDistanceToNowStrict(new Date(lastChecked), {
-        addSuffix: true,
-      });
+      let timeAgo;
+      if (!lastChecked) {
+        timeAgo = "Not checked yet!";
+      } else {
+        timeAgo = formatDistanceToNowStrict(new Date(lastChecked), {
+          addSuffix: true,
+        });
+      }
       return (
         <div className="text-center font-medium text-[#eee]">{timeAgo}</div>
       );
